@@ -1,104 +1,152 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 from predictor import predict_stroke
+from datetime import datetime
 
-# =====================
+# =========================
 # Page Config
-# =====================
+# =========================
 st.set_page_config(
-    page_title="Medical Stroke AI",
+    page_title="AI Doctor Pro",
     page_icon="🧠",
-    layout="centered"
+    layout="wide"
 )
 
-# =====================
-# Load CSS
-# =====================
+# =========================
+# CSS
+# =========================
 def load_css():
     with open("style.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 load_css()
 
-# =====================
-# Header
-# =====================
-st.title("🧠 Medical Stroke Prediction AI")
-st.caption("AI Clinical Decision Support System")
+# =========================
+# Session History
+# =========================
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+# =========================
+# HEADER
+# =========================
+st.title("🧠 AI Doctor Pro")
+st.caption("Clinical Stroke Risk Decision System")
 
 st.divider()
 
-# =====================
-# Patient Form
-# =====================
-col1, col2 = st.columns(2)
+# =========================
+# Layout
+# =========================
+left, right = st.columns([1,1])
 
-with col1:
-    age = st.slider("Age", 1, 100, 30)
-    hypertension = st.selectbox("Hypertension", [0,1])
-    heart = st.selectbox("Heart Disease", [0,1])
+# =========================
+# INPUT PANEL
+# =========================
+with left:
 
-with col2:
-    glucose = st.number_input("Glucose Level", 50.0, 300.0, 100.0)
-    bmi = st.number_input("BMI", 10.0, 60.0, 25.0)
+    st.subheader("👨‍⚕️ Patient Information")
 
-patient = [age, hypertension, heart, glucose, bmi]
+    age = st.slider("Age",1,100,30)
+    hypertension = st.selectbox("Hypertension",[0,1])
+    heart = st.selectbox("Heart Disease",[0,1])
+    glucose = st.number_input("Glucose Level",50.0,300.0,100.0)
+    bmi = st.number_input("BMI",10.0,60.0,25.0)
 
+    patient = [age, hypertension, heart, glucose, bmi]
+
+    analyze = st.button("🔬 Run AI Diagnosis")
+
+# =========================
+# RESULT PANEL
+# =========================
+with right:
+
+    st.subheader("📊 AI Analysis")
+
+    if analyze:
+
+        diagnosis, prob, advice = predict_stroke(patient)
+
+        risk = round(prob*100,2)
+
+        # Save history
+        st.session_state.history.append({
+            "time": datetime.now().strftime("%H:%M:%S"),
+            "risk": risk,
+            "diagnosis": diagnosis
+        })
+
+        # Diagnosis Box
+        if diagnosis == "مصاب":
+            st.error(f"🚨 Diagnosis: {diagnosis}")
+        else:
+            st.success(f"✅ Diagnosis: {diagnosis}")
+
+        st.metric("Risk Score", f"{risk}%")
+
+        # Gauge
+        fig, ax = plt.subplots()
+
+        ax.pie(
+            [risk,100-risk],
+            startangle=90,
+            wedgeprops=dict(width=0.35)
+        )
+
+        ax.text(0,0,f"{risk}%",
+                ha='center',
+                va='center',
+                fontsize=24,
+                fontweight='bold')
+
+        st.pyplot(fig)
+
+        # Advice
+        if advice["color"]=="green":
+            st.success(advice["advice"])
+        elif advice["color"]=="orange":
+            st.warning(advice["advice"])
+        else:
+            st.error(advice["advice"])
+
+# =========================
+# HISTORY PANEL
+# =========================
+st.divider()
+st.subheader("🗂 Patient Analysis History")
+
+if st.session_state.history:
+    st.table(st.session_state.history)
+else:
+    st.info("No analysis yet.")
+
+# =========================
+# REPORT
+# =========================
 st.divider()
 
-# =====================
-# Prediction
-# =====================
-if st.button("🔬 Analyze Patient Risk"):
+if st.button("📄 Generate Medical Report"):
 
-    diagnosis, prob, advice = predict_stroke(patient)
+    if st.session_state.history:
 
-    st.markdown('<div class="result-box">', unsafe_allow_html=True)
+        last = st.session_state.history[-1]
 
-    # Diagnosis
-    if diagnosis == "مصاب":
-        st.error(f"🚨 Diagnosis: {diagnosis}")
+        report = f"""
+        AI DOCTOR REPORT
+        -------------------------
+        Time: {last['time']}
+        Diagnosis: {last['diagnosis']}
+        Risk Score: {last['risk']}%
+
+        Recommendation:
+        Follow clinical monitoring and lifestyle optimization.
+        """
+
+        st.download_button(
+            "⬇ Download Report",
+            report,
+            file_name="medical_report.txt"
+        )
     else:
-        st.success(f"✅ Diagnosis: {diagnosis}")
-
-    # Risk Score
-    risk_percent = round(prob*100,2)
-    st.subheader(f"Risk Score: {risk_percent}%")
-
-    # Gauge Chart
-    fig, ax = plt.subplots()
-
-    ax.pie(
-        [risk_percent, 100-risk_percent],
-        startangle=90,
-        wedgeprops=dict(width=0.35)
-    )
-
-    ax.text(0,0,f"{risk_percent}%",
-            ha='center',
-            va='center',
-            fontsize=22,
-            fontweight='bold')
-
-    st.pyplot(fig)
-
-    # Advice
-    if advice["color"] == "green":
-        st.success(advice["advice"])
-    elif advice["color"] == "orange":
-        st.warning(advice["advice"])
-    else:
-        st.error(advice["advice"])
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# =====================
-# Footer
-# =====================
-st.markdown(
-"""
-<div class="footer">
-Medical AI Assistant • Powered by Machine Learning
-</div>
-""",
-unsafe_allow_html=True)
+        st.warning("Run diagnosis first.")
