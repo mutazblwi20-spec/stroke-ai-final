@@ -1,42 +1,45 @@
-import pickle
 import numpy as np
-import random
+import joblib
 
-# Load model
-model = pickle.load(open("FINAL_stroke_model.pkl", "rb"))
+# =====================
+# Load Model SAFELY
+# =====================
 
-def predict_stroke(data):
+@st.cache_resource
+def load_model():
+    return joblib.load("FINAL_stroke_model.pkl")
 
-    data = np.array(data).reshape(1, -1)
+model = load_model()
 
-    probability = model.predict_proba(data)[0][1]
+# =====================
+# Prediction Function
+# =====================
 
-    diagnosis = "مصاب" if probability > 0.5 else "غير مصاب"
+def predict_stroke(patient):
 
-    # Different advice every time
-    low = [
-        "Excellent health indicators. Keep active.",
-        "Maintain balanced nutrition.",
-        "Continue healthy lifestyle habits."
-    ]
+    data = np.array(patient).reshape(1, -1)
 
-    medium = [
-        "Monitor blood pressure regularly.",
-        "Reduce sugar intake.",
-        "Increase physical activity weekly."
-    ]
+    prob = model.predict_proba(data)[0][1]
 
-    high = [
-        "Consult a physician immediately.",
-        "Medical evaluation recommended.",
-        "High stroke risk detected — seek care."
-    ]
+    if prob > 0.5:
+        diagnosis = "مصاب"
+        advice = {
+            "color": "red",
+            "advice": "High stroke risk. Immediate medical consultation recommended."
+        }
 
-    if probability < 0.3:
-        advice = {"color":"green","advice":random.choice(low)}
-    elif probability < 0.7:
-        advice = {"color":"orange","advice":random.choice(medium)}
+    elif prob > 0.3:
+        diagnosis = "غير مصاب"
+        advice = {
+            "color": "orange",
+            "advice": "Moderate risk. Monitor blood pressure and glucose regularly."
+        }
+
     else:
-        advice = {"color":"red","advice":random.choice(high)}
+        diagnosis = "غير مصاب"
+        advice = {
+            "color": "green",
+            "advice": "Low risk. Maintain a healthy lifestyle."
+        }
 
-    return diagnosis, probability, advice
+    return diagnosis, prob, advice
