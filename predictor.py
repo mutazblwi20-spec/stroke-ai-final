@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 # ======================
-# Load Model Safely
+# Load Model (Cloud Safe)
 # ======================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,28 +19,40 @@ with open(MODEL_PATH, "rb") as f:
 
 def predict_stroke(patient):
 
-    data = np.array(patient).reshape(1, -1)
+    # model expects 10 features
+    EXPECTED_FEATURES = 10
 
-    prob = model.predict_proba(data)[0][1]
+    # convert to numpy
+    data = list(patient)
+
+    # auto complete missing features
+    if len(data) < EXPECTED_FEATURES:
+        data += [0] * (EXPECTED_FEATURES - len(data))
+
+    data = np.array(data).reshape(1, -1)
+
+    # prediction
+    prob = float(model.predict_proba(data)[0][1])
 
     diagnosis = "مصاب" if prob >= 0.5 else "غير مصاب"
 
-    if prob < 0.3:
+    # Smart AI Advice
+    if prob < 0.30:
         advice = {
             "color": "green",
-            "advice": "Excellent condition. Maintain healthy lifestyle."
+            "advice": "Low risk. Maintain exercise, hydration, and balanced diet."
         }
 
-    elif prob < 0.7:
+    elif prob < 0.70:
         advice = {
             "color": "orange",
-            "advice": "Moderate risk. Monitor blood pressure and glucose regularly."
+            "advice": "Moderate risk. Monitor blood pressure, glucose, and sleep quality."
         }
 
     else:
         advice = {
             "color": "red",
-            "advice": "High stroke risk. Immediate medical consultation required."
+            "advice": "High stroke risk detected. Consult a neurologist immediately."
         }
 
     return diagnosis, prob, advice
