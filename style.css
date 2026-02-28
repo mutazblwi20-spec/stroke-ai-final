@@ -1,14 +1,41 @@
+/* =========================
+   GLOBAL STYLE
+========================= */
+
 body {
-    background: linear-gradient(120deg,#e8f5ff,#ffffff);
-    font-family: Arial;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(-45deg,#e8f5ff,#ffffff,#f4fbff,#ffffff);
+    background-size: 400% 400%;
+    animation: gradientBG 14s ease infinite;
 }
+
+/* خلفية متحركة ناعمة */
+@keyframes gradientBG {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+}
+
+/* =========================
+   HEADER
+========================= */
 
 h1 {
     color:#0d6efd;
     text-align:center;
+    font-weight:700;
+    letter-spacing:1px;
 }
 
-.stButton>button {
+h2, h3 {
+    color:#1c3d5a;
+}
+
+/* =========================
+   BUTTON STYLE
+========================= */
+
+.stButton > button {
     background: linear-gradient(90deg,#0d6efd,#00b4ff);
     color:white;
     border:none;
@@ -16,17 +43,78 @@ h1 {
     height:55px;
     font-size:18px;
     font-weight:bold;
-    transition:0.3s;
+    width:100%;
+    transition: all 0.35s ease;
+    box-shadow:0px 4px 12px rgba(13,110,253,0.3);
 }
 
-.stButton>button:hover{
-    transform:scale(1.05);
+/* Hover Animation */
+.stButton > button:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow:0px 8px 22px rgba(13,110,253,0.45);
 }
 
-.result-box{
-    padding:25px;
+/* Click effect */
+.stButton > button:active {
+    transform: scale(0.98);
+}
+
+/* =========================
+   INPUT BOXES
+========================= */
+
+div[data-baseweb="select"],
+input {
+    border-radius:10px !important;
+}
+
+/* =========================
+   RESULT CARD
+========================= */
+
+.result-box {
+    padding:28px;
     border-radius:18px;
     background:white;
-    box-shadow:0px 5px 25px rgba(0,0,0,0.15);
-    margin-top:20px;
+    box-shadow:0px 8px 30px rgba(0,0,0,0.12);
+    margin-top:25px;
+    animation: fadeIn 0.7s ease;
+}
+
+/* ظهور ناعم */
+@keyframes fadeIn {
+    from {
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* =========================
+   SUCCESS / WARNING COLORS
+========================= */
+
+.stSuccess {
+    border-radius:12px;
+}
+
+.stWarning {
+    border-radius:12px;
+}
+
+.stError {
+    border-radius:12px;
+}
+
+/* =========================
+   DIVIDER STYLE
+========================= */
+
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #0d6efd, transparent);
 }
