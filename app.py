@@ -29,7 +29,7 @@ st.caption("AI Clinical Decision Support System")
 st.divider()
 
 # =====================
-# Inputs
+# Patient Form
 # =====================
 col1, col2 = st.columns(2)
 
@@ -53,19 +53,19 @@ if st.button("🔬 Analyze Patient Risk"):
 
     diagnosis, prob, advice = predict_stroke(patient)
 
-    risk_percent = round(prob * 100, 2)
-
     st.markdown('<div class="result-box">', unsafe_allow_html=True)
 
-    # Diagnosis color
+    # Diagnosis
     if diagnosis == "مصاب":
         st.error(f"🚨 Diagnosis: {diagnosis}")
     else:
         st.success(f"✅ Diagnosis: {diagnosis}")
 
+    # Risk Score
+    risk_percent = round(prob*100,2)
     st.subheader(f"Risk Score: {risk_percent}%")
 
-    # ===== Gauge Chart =====
+    # Gauge Chart
     fig, ax = plt.subplots()
 
     ax.pie(
@@ -74,17 +74,31 @@ if st.button("🔬 Analyze Patient Risk"):
         wedgeprops=dict(width=0.35)
     )
 
-    ax.text(0, 0, f"{risk_percent}%", ha='center', va='center', fontsize=22)
+    ax.text(0,0,f"{risk_percent}%",
+            ha='center',
+            va='center',
+            fontsize=22,
+            fontweight='bold')
+
     st.pyplot(fig)
 
-    # ===== Smart Advice =====
-    if risk_percent < 30:
-        st.success("✅ Low Risk — Maintain exercise and healthy diet.")
-    elif risk_percent < 70:
-        st.warning("⚠️ Moderate Risk — Monitor blood pressure and glucose regularly.")
+    # Advice
+    if advice["color"] == "green":
+        st.success(advice["advice"])
+    elif advice["color"] == "orange":
+        st.warning(advice["advice"])
     else:
-        st.error("🚨 High Risk — Medical consultation recommended immediately.")
-
-    st.info("💡 AI recommendation generated using clinical risk factors.")
+        st.error(advice["advice"])
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+# =====================
+# Footer
+# =====================
+st.markdown(
+"""
+<div class="footer">
+Medical AI Assistant • Powered by Machine Learning
+</div>
+""",
+unsafe_allow_html=True)
