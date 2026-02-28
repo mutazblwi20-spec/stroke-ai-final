@@ -4,7 +4,7 @@ from predictor import predict_stroke
 from datetime import datetime
 
 # =========================
-# Page Config
+# PAGE CONFIG
 # =========================
 st.set_page_config(
     page_title="AI Doctor Pro",
@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # =========================
-# CSS
+# LOAD CSS
 # =========================
 def load_css():
     with open("style.css") as f:
@@ -22,7 +22,7 @@ def load_css():
 load_css()
 
 # =========================
-# Session History
+# SESSION MEMORY
 # =========================
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -30,13 +30,13 @@ if "history" not in st.session_state:
 # =========================
 # HEADER
 # =========================
-st.title("🧠 AI Doctor Pro")
-st.caption("Clinical Stroke Risk Decision System")
+st.markdown("<h1 class='title'>🧠 AI Doctor Pro</h1>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle'>Clinical Stroke Risk Decision System</p>", unsafe_allow_html=True)
 
 st.divider()
 
 # =========================
-# Layout
+# LAYOUT
 # =========================
 left, right = st.columns([1,1])
 
@@ -67,25 +67,37 @@ with right:
     if analyze:
 
         diagnosis, prob, advice = predict_stroke(patient)
-
         risk = round(prob*100,2)
+
+        # Risk Level
+        if risk < 30:
+            level = "Low Risk"
+            color = "green"
+        elif risk < 70:
+            level = "Moderate Risk"
+            color = "orange"
+        else:
+            level = "High Risk"
+            color = "red"
 
         # Save history
         st.session_state.history.append({
-            "time": datetime.now().strftime("%H:%M:%S"),
-            "risk": risk,
-            "diagnosis": diagnosis
+            "Time": datetime.now().strftime("%H:%M:%S"),
+            "Risk %": risk,
+            "Diagnosis": diagnosis,
+            "Level": level
         })
 
-        # Diagnosis Box
+        # Diagnosis
         if diagnosis == "مصاب":
             st.error(f"🚨 Diagnosis: {diagnosis}")
         else:
             st.success(f"✅ Diagnosis: {diagnosis}")
 
         st.metric("Risk Score", f"{risk}%")
+        st.info(f"Risk Level: {level}")
 
-        # Gauge
+        # Gauge Chart
         fig, ax = plt.subplots()
 
         ax.pie(
@@ -111,18 +123,18 @@ with right:
             st.error(advice["advice"])
 
 # =========================
-# HISTORY PANEL
+# HISTORY
 # =========================
 st.divider()
 st.subheader("🗂 Patient Analysis History")
 
 if st.session_state.history:
-    st.table(st.session_state.history)
+    st.dataframe(st.session_state.history, use_container_width=True)
 else:
     st.info("No analysis yet.")
 
 # =========================
-# REPORT
+# REPORT GENERATOR
 # =========================
 st.divider()
 
@@ -133,20 +145,21 @@ if st.button("📄 Generate Medical Report"):
         last = st.session_state.history[-1]
 
         report = f"""
-        AI DOCTOR REPORT
-        -------------------------
-        Time: {last['time']}
-        Diagnosis: {last['diagnosis']}
-        Risk Score: {last['risk']}%
+AI DOCTOR PRO REPORT
+----------------------------
+Time: {last['Time']}
+Diagnosis: {last['Diagnosis']}
+Risk Score: {last['Risk %']}%
+Risk Level: {last['Level']}
 
-        Recommendation:
-        Follow clinical monitoring and lifestyle optimization.
-        """
+Recommendation:
+Maintain medical follow-up and healthy lifestyle.
+"""
 
         st.download_button(
             "⬇ Download Report",
             report,
-            file_name="medical_report.txt"
+            file_name="AI_Doctor_Report.txt"
         )
     else:
         st.warning("Run diagnosis first.")
