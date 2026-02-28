@@ -1,24 +1,65 @@
 import pickle
 import numpy as np
+import os
 
-with open("FINAL_stroke_model.pkl","rb") as f:
-    model = pickle.load(f)
+# =========================
+# SAFE MODEL LOADING
+# =========================
+
+MODEL_PATH = "FINAL_stroke_model.pkl"
+
+model = None
+
+def load_model():
+    global model
+
+    if model is None:
+        try:
+            with open(MODEL_PATH, "rb") as f:
+                model = pickle.load(f)
+            print("✅ Model loaded successfully")
+
+        except Exception as e:
+            print("❌ Model loading error:", e)
+            model = None
+
+load_model()
+
+# =========================
+# Prediction Function
+# =========================
 
 def predict_stroke(patient):
 
-    data = np.array(patient).reshape(1,-1)
+    if model is None:
+        return "خطأ", 0.0, {
+            "color": "red",
+            "advice": "Model failed to load"
+        }
+
+    data = np.array([patient])
 
     prob = model.predict_proba(data)[0][1]
-    diagnosis = "مصاب" if prob > 0.5 else "غير مصاب"
 
-    if prob < 0.3:
-        advice = {"color":"green",
-                  "advice":"Low risk. Maintain healthy lifestyle."}
-    elif prob < 0.7:
-        advice = {"color":"orange",
-                  "advice":"Moderate risk. Monitor blood pressure and glucose."}
+    if prob > 0.5:
+        diagnosis = "مصاب"
+        advice = {
+            "color": "red",
+            "advice": "High stroke risk. Immediate clinical evaluation recommended."
+        }
+
+    elif prob > 0.25:
+        diagnosis = "خطر متوسط"
+        advice = {
+            "color": "orange",
+            "advice": "Moderate risk. Improve lifestyle and monitor health."
+        }
+
     else:
-        advice = {"color":"red",
-                  "advice":"High risk. Consult a physician immediately."}
+        diagnosis = "سليم"
+        advice = {
+            "color": "green",
+            "advice": "Low risk. Maintain healthy habits."
+        }
 
     return diagnosis, prob, advice
