@@ -3,56 +3,51 @@ import os
 import numpy as np
 
 # ======================
-# Load Model (Cloud Safe)
+# Safe Model Loader
 # ======================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "FINAL_stroke_model.pkl")
 
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
+def load_model():
+    with open(MODEL_PATH, "rb") as f:
+        return pickle.load(f)
 
+model = load_model()
 
 # ======================
-# Prediction Function
+# Prediction
 # ======================
 
 def predict_stroke(patient):
 
-    # model expects 10 features
     EXPECTED_FEATURES = 10
 
-    # convert to numpy
     data = list(patient)
 
-    # auto complete missing features
     if len(data) < EXPECTED_FEATURES:
-        data += [0] * (EXPECTED_FEATURES - len(data))
+        data += [0]*(EXPECTED_FEATURES-len(data))
 
-    data = np.array(data).reshape(1, -1)
+    data = np.array(data).reshape(1,-1)
 
-    # prediction
     prob = float(model.predict_proba(data)[0][1])
 
     diagnosis = "مصاب" if prob >= 0.5 else "غير مصاب"
 
-    # Smart AI Advice
-    if prob < 0.30:
+    if prob < 0.3:
         advice = {
-            "color": "green",
-            "advice": "Low risk. Maintain exercise, hydration, and balanced diet."
+            "color":"green",
+            "advice":"Low risk. Maintain healthy lifestyle."
         }
-
-    elif prob < 0.70:
+    elif prob < 0.7:
         advice = {
-            "color": "orange",
-            "advice": "Moderate risk. Monitor blood pressure, glucose, and sleep quality."
+            "color":"orange",
+            "advice":"Moderate risk. Monitor glucose and blood pressure."
         }
-
     else:
         advice = {
-            "color": "red",
-            "advice": "High stroke risk detected. Consult a neurologist immediately."
+            "color":"red",
+            "advice":"High risk. Consult a neurologist immediately."
         }
 
     return diagnosis, prob, advice
