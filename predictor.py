@@ -1,26 +1,42 @@
-import joblib
-import pandas as pd
+import pickle
 import numpy as np
+import random
 
-model = joblib.load("FINAL_stroke_model.pkl")
+# Load model
+model = pickle.load(open("FINAL_stroke_model.pkl", "rb"))
 
-def predict_stroke(patient):
+def predict_stroke(data):
 
-    columns = model.feature_names_in_
+    data = np.array(data).reshape(1, -1)
 
-    data = pd.DataFrame(
-        np.zeros((1, len(columns))),
-        columns=columns
-    )
+    probability = model.predict_proba(data)[0][1]
 
-    data["age"] = patient[0]
-    data["hypertension"] = patient[1]
-    data["heart_disease"] = patient[2]
-    data["avg_glucose_level"] = patient[3]
-    data["bmi"] = patient[4]
+    diagnosis = "مصاب" if probability > 0.5 else "غير مصاب"
 
-    prob = model.predict_proba(data)[0][1]
+    # Different advice every time
+    low = [
+        "Excellent health indicators. Keep active.",
+        "Maintain balanced nutrition.",
+        "Continue healthy lifestyle habits."
+    ]
 
-    diagnosis = "مصاب" if prob >= 0.5 else "غير مصاب"
+    medium = [
+        "Monitor blood pressure regularly.",
+        "Reduce sugar intake.",
+        "Increase physical activity weekly."
+    ]
 
-    return diagnosis, prob
+    high = [
+        "Consult a physician immediately.",
+        "Medical evaluation recommended.",
+        "High stroke risk detected — seek care."
+    ]
+
+    if probability < 0.3:
+        advice = {"color":"green","advice":random.choice(low)}
+    elif probability < 0.7:
+        advice = {"color":"orange","advice":random.choice(medium)}
+    else:
+        advice = {"color":"red","advice":random.choice(high)}
+
+    return diagnosis, probability, advice
